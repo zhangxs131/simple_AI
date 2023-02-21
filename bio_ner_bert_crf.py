@@ -211,7 +211,7 @@ def evaluate(model, data_loader, device='cpu', label_list=None, seq_len=512):
             input['attention_mask'] = input['attention_mask'].to(device)
             input['labels'] = input['labels'].to(device)
 
-            outputs = model(**input)
+            outputs = model(**input,decode=True)
             loss = outputs["loss"]
             loss_total += loss
 
@@ -264,7 +264,7 @@ def predict(model, data_loader, label_list=None, device='cpu'):
             input['token_type_ids'] = input['token_type_ids'].to(device)
             input['attention_mask'] = input['attention_mask'].to(device)
 
-            outputs = model(**input)
+            outputs = model(**input,decode=True)
 
             predic = outputs['logits'].argmax(dim=-1).cpu().numpy()
 
@@ -317,7 +317,7 @@ def main():
 
         # model
         config = AutoConfig.from_pretrained(args.pretrained_path, num_labels=len(label_list))
-        model = BertForTokenClassification.from_pretrained(args.pretrained_path, config=config)
+        model = BertCRFforNER.from_pretrained(args.pretrained_path, config=config)
         model = model.to(device)
 
         # train and eval
@@ -327,7 +327,7 @@ def main():
         test_dataloader = gen_test_dataloader(args.predict_dir, tokenizer=tokenizer)
 
         config = AutoConfig.from_pretrained(args.pretrained_path, num_labels=args.class_num)
-        model = BertForTokenClassification.from_config(config)
+        model = BertCRFforNER.from_config(config)
         model.load_state_dict(torch.load(args.model_save_path))
         model.to(device)
         result = predict(model, test_dataloader, label_list, device)
